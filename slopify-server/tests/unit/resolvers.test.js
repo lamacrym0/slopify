@@ -37,12 +37,21 @@ jest.unstable_mockModule('../../models/EventSchema.js', () => ({
   }
 }));
 
-// Mock de MongoDB ObjectId - CORRECTION ICI
+// Mock de MongoDB ObjectId - CORRECTION
 jest.unstable_mockModule('mongodb', () => ({
-  ObjectId: jest.fn().mockImplementation((id) => {
-    if (id) return id; // Si un ID est fourni, le retourner tel quel
-    return 'mocked-object-id'; // Sinon retourner un ID par défaut
-  })
+  ObjectId: function(id) {
+    // Gérer les appels avec new et sans new
+    const value = id || 'mocked-object-id';
+    
+    // Créer un objet qui se comporte comme un ObjectId
+    const obj = {
+      toString: () => value,
+      valueOf: () => value,
+      [Symbol.toPrimitive]: () => value
+    };
+    
+    return obj;
+  }
 }));
 
 // Mock d'axios pour éviter les appels Spotify
@@ -188,7 +197,7 @@ describe('Resolvers - Tests Unitaires', () => {
       const context = { user: { id: 'test-user', email: 'test@test.com' } };
       const existingEvent = { _id: 'test-id', name: 'Original Event', createdBy: 'test-user' };
       
-      // CORRECTION: S'assurer que findOne retourne l'événement existant
+      // S'assurer que findOne retourne l'événement existant
       mockCollection.findOne.mockResolvedValueOnce(existingEvent);
 
       const result = await resolvers.Mutation.updateEvent(null, args, context);
@@ -208,8 +217,18 @@ describe('Resolvers - Tests Unitaires', () => {
         artists: []
       }));
       
-      // Vérifier le résultat
-      expect(result._id).toBe('test-id');
+      // Vérifier le résultat - CORRECTION: être flexible sur le type de _id
+      expect(result).toEqual(expect.objectContaining({
+        name: 'Updated Event',
+        dateFrom: '20250101',
+        dateTo: '20250102',
+        location: [46.2, 7.3],
+        artists: [],
+        createdBy: 'test-user'
+      }));
+      
+      // Vérifier spécifiquement que _id est correct (peut être string ou ObjectId)
+      expect(result._id.toString()).toBe('test-id');
       expect(result.name).toBe('Updated Event');
     });
   });
@@ -249,7 +268,7 @@ describe('Resolvers - Tests Unitaires', () => {
       const context = { user: { id: 'test-user', email: 'test@test.com' } };
       const existingEvent = { _id: 'test-id', name: 'Test Event', createdBy: 'test-user' };
       
-      // CORRECTION: S'assurer que findOne retourne l'événement existant
+      // S'assurer que findOne retourne l'événement existant
       mockCollection.findOne.mockResolvedValueOnce(existingEvent);
 
       const result = await resolvers.Mutation.deleteEvent(null, args, context);
