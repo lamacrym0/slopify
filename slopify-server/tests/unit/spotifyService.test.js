@@ -243,8 +243,40 @@ describe('SpotifyService - Tests Unitaires', () => {
       mockAxios.post.mockResolvedValue(mockTokenResponse);
       mockAxios.get.mockResolvedValue(malformedResponse);
 
+      // Mock console.warn pour éviter l'affichage dans les tests
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
       const result = await SpotifyService.searchArtists('test');
+      
       expect(result).toEqual([]);
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Réponse API Spotify malformée, retour d\'un tableau vide');
+      
+      consoleWarnSpy.mockRestore();
+    });
+
+    test('devrait gérer les réponses avec artists.items undefined', async () => {
+      const mockTokenResponse = {
+        data: { access_token: 'test-token', expires_in: 3600 }
+      };
+
+      const malformedResponse = {
+        data: { 
+          artists: {} // Pas de propriété items
+        }
+      };
+
+      mockAxios.post.mockResolvedValue(mockTokenResponse);
+      mockAxios.get.mockResolvedValue(malformedResponse);
+
+      // Mock console.warn pour éviter l'affichage dans les tests
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = await SpotifyService.searchArtists('test');
+      
+      expect(result).toEqual([]);
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Réponse API Spotify malformée, retour d\'un tableau vide');
+      
+      consoleWarnSpy.mockRestore();
     });
   });
 });

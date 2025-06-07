@@ -1,4 +1,4 @@
-// Mocks pour la base de données MongoDB
+import { jest } from '@jest/globals';
 
 export const createMockDb = () => {
   const mockCollection = {

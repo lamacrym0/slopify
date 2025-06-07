@@ -52,6 +52,12 @@ class SpotifyService {
         }
       );
 
+      // Vérification de la structure de la réponse
+      if (!response.data || !response.data.artists || !Array.isArray(response.data.artists.items)) {
+        console.warn('Réponse API Spotify malformée, retour d\'un tableau vide');
+        return [];
+      }
+
       return response.data.artists.items.map(artist => ({
         id: artist.id,
         name: artist.name,

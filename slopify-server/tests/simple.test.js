@@ -1,4 +1,5 @@
-// tests/simple.test.js
+import { jest } from '@jest/globals';
+
 describe('Configuration de base', () => {
   test('Jest fonctionne avec les modules ES6', () => {
     expect(1 + 1).toBe(2);
