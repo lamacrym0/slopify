@@ -12,9 +12,13 @@ jest.unstable_mockModule('axios', () => ({
 
 describe('SpotifyService - Tests Unitaires', () => {
   let SpotifyService;
+  let consoleErrorSpy;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    
+    // Mock console.error pour éviter l'affichage des erreurs attendues
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Mock des variables d'environnement
     process.env.SPOTIFY_CLIENT_ID = 'test-client-id';
@@ -27,6 +31,11 @@ describe('SpotifyService - Tests Unitaires', () => {
     // Reset du service pour chaque test
     SpotifyService.accessToken = null;
     SpotifyService.tokenExpiry = null;
+  });
+
+  afterEach(() => {
+    // Restaurer console.error après chaque test
+    consoleErrorSpy.mockRestore();
   });
 
   describe('getAccessToken', () => {
@@ -99,6 +108,12 @@ describe('SpotifyService - Tests Unitaires', () => {
 
       await expect(SpotifyService.getAccessToken())
         .rejects.toThrow('Impossible de s\'authentifier avec Spotify');
+      
+      // Vérifier que console.error a été appelé
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Erreur lors de l\'authentification Spotify:', 
+        { error: 'invalid_client' }
+      );
     });
   });
 
@@ -200,6 +215,12 @@ describe('SpotifyService - Tests Unitaires', () => {
 
       await expect(SpotifyService.searchArtists('test'))
         .rejects.toThrow('Erreur lors de la recherche d\'artistes sur Spotify');
+      
+      // Vérifier que console.error a été appelé
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Erreur lors de la recherche d\'artistes:', 
+        'API Error'
+      );
     });
 
     test('devrait encoder correctement les caractères spéciaux dans la requête', async () => {
@@ -229,6 +250,12 @@ describe('SpotifyService - Tests Unitaires', () => {
 
       await expect(SpotifyService.getAccessToken())
         .rejects.toThrow('Impossible de s\'authentifier avec Spotify');
+      
+      // Vérifier que console.error a été appelé
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Erreur lors de l\'authentification Spotify:', 
+        'Network Error'
+      );
     });
 
     test('devrait gérer les réponses API malformées', async () => {
@@ -243,7 +270,7 @@ describe('SpotifyService - Tests Unitaires', () => {
       mockAxios.post.mockResolvedValue(mockTokenResponse);
       mockAxios.get.mockResolvedValue(malformedResponse);
 
-      // Mock console.warn pour éviter l'affichage dans les tests
+      // Mock console.warn également pour ce test
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       const result = await SpotifyService.searchArtists('test');
@@ -268,7 +295,7 @@ describe('SpotifyService - Tests Unitaires', () => {
       mockAxios.post.mockResolvedValue(mockTokenResponse);
       mockAxios.get.mockResolvedValue(malformedResponse);
 
-      // Mock console.warn pour éviter l'affichage dans les tests
+      // Mock console.warn également pour ce test
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       const result = await SpotifyService.searchArtists('test');
