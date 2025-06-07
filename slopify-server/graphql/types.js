@@ -1,4 +1,4 @@
-const typeDefs = `
+const typeDefs = `#graphql
   type Artist {
     name: String!
   }
@@ -13,6 +13,10 @@ const typeDefs = `
     createdBy: ID!
   }
 
+  input ArtistInput {
+    name: String!
+  }
+
   type Query {
     events: [Event]
     myEvents: [Event]
@@ -23,8 +27,8 @@ const typeDefs = `
       name: String!
       dateFrom: String!
       dateTo: String!
-      location: [Float]!
       artists: [ArtistInput]
+      location: [Float]
     ): Event
 
     updateEvent(
@@ -37,10 +41,6 @@ const typeDefs = `
     ): Event
 
     deleteEvent(eventId: ID!): Boolean
-  }
-
-  input ArtistInput {
-    name: String!
   }
 `;
 

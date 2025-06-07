@@ -14,7 +14,7 @@ const myEvents = async (_, __, context) => {
 
 const createEvent = async (_, args, context) => {
   if (!context.user) throw new Error("Unauthorized");
-
+  console.log("ARGS REÇUS ➜", args); 
   const event = {
     ...args,
     createdBy: context.user.id,

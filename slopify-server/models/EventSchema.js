@@ -10,9 +10,19 @@ export const EventSchema = new SimpleSchema({
     maxCount: 2
   },
   "location.$": Number,
+
   artists: {
     type: Array,
     optional: true
   },
-  "artists.$": String
+  "artists.$": Object, 
+
+  "artists.$.name": {
+    type: String,
+  },
+
+  createdBy: {
+    type: String,
+  }
 });
+
