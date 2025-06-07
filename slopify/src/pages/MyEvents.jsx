@@ -17,9 +17,21 @@ import {
   Alert,
   Box,
   Chip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction,
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon,
+  PersonAdd as PersonAddIcon,
+} from "@mui/icons-material";
 import { parse, format } from "date-fns";
+import ArtistSearch from "../components/ArtistSearch";
 
 const MY_EVENTS = gql`
   query GetMyEvents {
@@ -30,7 +42,10 @@ const MY_EVENTS = gql`
       dateTo
       location
       artists {
+        id
         name
+        href
+        imageUrl
       }
     }
   }
@@ -57,7 +72,10 @@ const CREATE_EVENT = gql`
       dateTo
       location
       artists {
+        id
         name
+        href
+        imageUrl
       }
     }
   }
@@ -86,7 +104,10 @@ const UPDATE_EVENT = gql`
       dateTo
       location
       artists {
+        id
         name
+        href
+        imageUrl
       }
     }
   }
@@ -105,6 +126,7 @@ export default function MyEvents() {
   const [deleteEvent] = useMutation(DELETE_EVENT);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [artistSearchOpen, setArtistSearchOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [error, setError] = useState("");
 
@@ -114,8 +136,9 @@ export default function MyEvents() {
     dateTo: "",
     locationX: "",
     locationY: "",
-    artistsRaw: "",
   });
+
+  const [selectedArtists, setSelectedArtists] = useState([]);
 
   const resetForm = () => {
     setForm({
@@ -124,8 +147,8 @@ export default function MyEvents() {
       dateTo: "",
       locationX: "",
       locationY: "",
-      artistsRaw: "",
     });
+    setSelectedArtists([]);
     setEditingEvent(null);
     setError("");
   };
@@ -139,8 +162,8 @@ export default function MyEvents() {
         dateTo: event.dateTo,
         locationX: event.location[0].toString(),
         locationY: event.location[1].toString(),
-        artistsRaw: event.artists.map(a => a.name).join(", "),
       });
+      setSelectedArtists(event.artists || []);
     } else {
       resetForm();
     }
@@ -152,22 +175,33 @@ export default function MyEvents() {
     resetForm();
   };
 
+  const handleAddArtist = (artist) => {
+    // Vérifier si l'artiste n'est pas déjà ajouté
+    if (!selectedArtists.find(a => a.id === artist.id)) {
+      setSelectedArtists([...selectedArtists, artist]);
+    }
+  };
+
+  const handleRemoveArtist = (artistId) => {
+    setSelectedArtists(selectedArtists.filter(a => a.id !== artistId));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const artists = form.artistsRaw
-        .split(",")
-        .map((name) => ({ name: name.trim() }))
-        .filter(a => a.name);
-
       const variables = {
         name: form.name,
         dateFrom: form.dateFrom,
         dateTo: form.dateTo,
         location: [parseFloat(form.locationX), parseFloat(form.locationY)],
-        artists,
+        artists: selectedArtists.map(artist => ({
+          id: artist.id,
+          name: artist.name,
+          href: artist.href,
+          imageUrl: artist.imageUrl
+        })),
       };
 
       if (editingEvent) {
@@ -248,7 +282,14 @@ export default function MyEvents() {
                   </Typography>
                   <Box display="flex" flexWrap="wrap" gap={0.5}>
                     {event.artists?.map((artist, index) => (
-                      <Chip key={index} label={artist.name} size="small" />
+                      <Chip 
+                        key={artist.id || index}
+                        label={artist.name}
+                        size="small"
+                        avatar={artist.imageUrl ? <Avatar src={artist.imageUrl} /> : undefined}
+                        onClick={artist.href ? () => window.open(artist.href, '_blank') : undefined}
+                        clickable={!!artist.href}
+                      />
                     ))}
                   </Box>
                 </Box>
@@ -273,7 +314,7 @@ export default function MyEvents() {
       )}
 
       {/* Dialog pour créer/modifier un événement */}
-      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
+      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           {editingEvent ? "Modifier l'événement" : "Ajouter un événement"}
         </DialogTitle>
@@ -325,16 +366,47 @@ export default function MyEvents() {
               step="any"
               required
             />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Artistes (séparés par des virgules)"
-              value={form.artistsRaw}
-              onChange={(e) => setForm({ ...form, artistsRaw: e.target.value })}
-              placeholder="Stromae, Angèle, The Weeknd"
-              multiline
-              rows={2}
-            />
+
+            {/* Section Artistes */}
+            <Box mt={3}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">Artistes</Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<PersonAddIcon />}
+                  onClick={() => setArtistSearchOpen(true)}
+                >
+                  Ajouter un artiste
+                </Button>
+              </Box>
+
+              {selectedArtists.length > 0 ? (
+                <List>
+                  {selectedArtists.map((artist) => (
+                    <ListItem key={artist.id} divider>
+                      <ListItemAvatar>
+                        <Avatar src={artist.imageUrl}>
+                          {artist.name.charAt(0)}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={artist.name}
+                        secondary={artist.href ? "Profil Spotify" : "Artiste local"}
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton onClick={() => handleRemoveArtist(artist.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Typography variant="body2" color="text.secondary" textAlign="center" p={2}>
+                  Aucun artiste ajouté
+                </Typography>
+              )}
+            </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={closeDialog}>Annuler</Button>
@@ -344,6 +416,13 @@ export default function MyEvents() {
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Dialog de recherche d'artistes */}
+      <ArtistSearch
+        open={artistSearchOpen}
+        onClose={() => setArtistSearchOpen(false)}
+        onSelectArtist={handleAddArtist}
+      />
     </Container>
   );
 }

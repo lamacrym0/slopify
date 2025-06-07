@@ -17,12 +17,26 @@ export const EventSchema = new SimpleSchema({
   },
   "artists.$": Object, 
 
+  "artists.$.id": {
+    type: String,
+    optional: true
+  },
+
   "artists.$.name": {
     type: String,
+  },
+
+  "artists.$.href": {
+    type: String,
+    optional: true
+  },
+
+  "artists.$.imageUrl": {
+    type: String,
+    optional: true
   },
 
   createdBy: {
     type: String,
   }
 });
-

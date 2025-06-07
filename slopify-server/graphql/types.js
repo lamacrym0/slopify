@@ -1,5 +1,8 @@
 const typeDefs = `#graphql
   type Artist {
+    id: ID!
+    href: String
+    imageUrl: String
     name: String!
   }
 
@@ -10,16 +13,20 @@ const typeDefs = `#graphql
     dateTo: String!
     location: [Float]!
     artists: [Artist]
-    createdBy: ID!
+    createdBy: ID
   }
 
   input ArtistInput {
+    id: ID
     name: String!
+    href: String
+    imageUrl: String
   }
 
   type Query {
     events: [Event]
     myEvents: [Event]
+    searchArtist(name: String!): [Artist]
   }
 
   type Mutation {
@@ -41,6 +48,8 @@ const typeDefs = `#graphql
     ): Event
 
     deleteEvent(eventId: ID!): Boolean
+    
+    searchArtist(name: String!): [Artist]
   }
 `;
 

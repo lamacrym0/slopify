@@ -14,11 +14,11 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapView = () => {
-  const { events, loading } = useEvents();
+  const { events, loading, error } = useEvents();
   const centerSion = [46.2276, 7.3606];
 
   if (loading) return <p>Chargement des événements...</p>;
-  
+  if (error && events.length === 0) return <p>Erreur lors du chargement des événements.</p>;
 
   return (
     <MapContainer
@@ -34,15 +34,58 @@ const MapView = () => {
       {events.map((event, index) => {
         const from = parse(event.dateFrom, "yyyyMMdd", new Date());
         const to = parse(event.dateTo, "yyyyMMdd", new Date());
+        
         return (
-          <Marker key={index} position={event.location}>
+          <Marker key={event._id || index} position={event.location}>
             <Popup>
-              <strong>{event.name}</strong><br />
-              Du {format(from, "dd MMM yyyy")} au {format(to, "dd MMM yyyy")}<br />
-              <em>Artistes :</em><br />
-              <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
-                {event.artists.map((a, i) => <li key={i}>{a.name}</li>)}
-              </ul>
+              <div style={{ minWidth: "200px" }}>
+                <strong>{event.name}</strong><br />
+                Du {format(from, "dd MMM yyyy")} au {format(to, "dd MMM yyyy")}<br />
+                <em>Artistes :</em><br />
+                {event.artists && event.artists.length > 0 ? (
+                  <div style={{ marginTop: "8px" }}>
+                    {event.artists.map((artist, artistIndex) => (
+                      <div key={artist.id || artistIndex} style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        marginBottom: "4px",
+                        gap: "8px"
+                      }}>
+                        {artist.imageUrl && (
+                          <img 
+                            src={artist.imageUrl} 
+                            alt={artist.name}
+                            style={{ 
+                              width: "30px", 
+                              height: "30px", 
+                              borderRadius: "50%",
+                              objectFit: "cover"
+                            }} 
+                          />
+                        )}
+                        {artist.href ? (
+                          <a 
+                            href={artist.href} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ 
+                              textDecoration: "none", 
+                              color: "#1976d2",
+                              fontWeight: "500"
+                            }}
+                          >
+                            {artist.name}
+                          </a>
+                        ) : (
+                          <span>{artist.name}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: "4px 0", color: "#666" }}>Aucun artiste spécifié</p>
+                )}
+              </div>
             </Popup>
           </Marker>
         );

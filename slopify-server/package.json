@@ -8,6 +8,7 @@
   "dependencies": {
     "@apollo/client": "^3.13.8",
     "@apollo/server": "^4.12.2",
+    "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
