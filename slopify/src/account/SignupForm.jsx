@@ -1,5 +1,14 @@
 import React, { useState, useContext } from "react";
 import UserContext from "./UserContext.jsx";
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Paper,
+  Box,
+} from "@mui/material";
 
 export default function SignupForm() {
   const { refetchMe } = useContext(UserContext);
@@ -15,7 +24,7 @@ export default function SignupForm() {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     });
 
     if (res.ok) {
@@ -27,14 +36,51 @@ export default function SignupForm() {
   };
 
   return (
-    <form onSubmit={handleSignup}>
-      <h2>Créer un compte</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input type="email" placeholder="Email" value={email}
-        onChange={(e) => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Mot de passe" value={password}
-        onChange={(e) => setPassword(e.target.value)} required />
-      <button type="submit">Créer un compte</button>
-    </form>
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ padding: 4, mt: 6 }}>
+        <Typography variant="h5" gutterBottom align="center">
+          Créer un compte
+        </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleSignup} noValidate>
+          <TextField
+            fullWidth
+            label="Adresse email"
+            type="email"
+            variant="outlined"
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <TextField
+            fullWidth
+            label="Mot de passe"
+            type="password"
+            variant="outlined"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            Créer un compte
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
 }
