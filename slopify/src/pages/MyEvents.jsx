@@ -29,9 +29,11 @@ import {
   Edit as EditIcon, 
   Delete as DeleteIcon,
   PersonAdd as PersonAddIcon,
+  LocationOn as LocationIcon,
 } from "@mui/icons-material";
 import { parse, format } from "date-fns";
 import ArtistSearch from "../components/ArtistSearch";
+import LocationSearch from "../components/LocationSearch";
 
 const MY_EVENTS = gql`
   query GetMyEvents {
@@ -127,6 +129,7 @@ export default function MyEvents() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [artistSearchOpen, setArtistSearchOpen] = useState(false);
+  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [error, setError] = useState("");
 
@@ -184,6 +187,14 @@ export default function MyEvents() {
 
   const handleRemoveArtist = (artistId) => {
     setSelectedArtists(selectedArtists.filter(a => a.id !== artistId));
+  };
+
+  const handleSelectLocation = (location) => {
+    setForm({
+      ...form,
+      locationX: location.latitude.toString(),
+      locationY: location.longitude.toString(),
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -349,7 +360,7 @@ export default function MyEvents() {
             <TextField
               fullWidth
               margin="normal"
-              label="Longitude"
+              label="Latitude"
               type="number"
               value={form.locationX}
               onChange={(e) => setForm({ ...form, locationX: e.target.value })}
@@ -359,13 +370,25 @@ export default function MyEvents() {
             <TextField
               fullWidth
               margin="normal"
-              label="Latitude"
+              label="Longitude"
               type="number"
               value={form.locationY}
               onChange={(e) => setForm({ ...form, locationY: e.target.value })}
               step="any"
               required
             />
+            
+            {/* Bouton de recherche de lieu */}
+            <Box mt={1} mb={2}>
+              <Button
+                variant="outlined"
+                startIcon={<LocationIcon />}
+                onClick={() => setLocationSearchOpen(true)}
+                fullWidth
+              >
+                Chercher un lieu
+              </Button>
+            </Box>
 
             {/* Section Artistes */}
             <Box mt={3}>
@@ -422,6 +445,13 @@ export default function MyEvents() {
         open={artistSearchOpen}
         onClose={() => setArtistSearchOpen(false)}
         onSelectArtist={handleAddArtist}
+      />
+
+      {/* Dialog de recherche de lieux */}
+      <LocationSearch
+        open={locationSearchOpen}
+        onClose={() => setLocationSearchOpen(false)}
+        onSelectLocation={handleSelectLocation}
       />
     </Container>
   );
