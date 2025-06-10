@@ -57,6 +57,6 @@ app.use('/graphql', expressMiddleware(apolloServer, {
 app.listen(PORT, async () => {
   await client.connect();
   await bootstrapEvents();
-  console.log(`🚀 Backend Slopify prêt : http://localhost:${PORT}`);
-  console.log(`📡 GraphQL disponible sur : http://localhost:${PORT}/graphql`);
+  console.log(`Backend Slopify prêt : http://localhost:${PORT}`);
+  console.log(`GraphQL disponible sur : http://localhost:${PORT}/graphql`);
 });

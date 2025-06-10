@@ -1,5 +1,4 @@
-import React, { useState, useContext } from "react";
-import UserContext from "./UserContext.jsx";
+import React, { useState } from "react";
 import {
   Container,
   Typography,
@@ -10,28 +9,40 @@ import {
   Box,
 } from "@mui/material";
 
-export default function SignupForm() {
-  const { refetchMe } = useContext(UserContext);
+export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleSignup = async (e) => {
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setEmailError("");
     setError(null);
+    setSuccess(false);
 
-    const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/signup`, {
+    if (!validateEmail(email)) {
+      setEmailError("Adresse email invalide");
+      return;
+    }
+
+    const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/register`, {
       method: "POST",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
     if (res.ok) {
-      await refetchMe(); // auto login
+      setSuccess(true);
     } else {
       const data = await res.json();
-      setError(data.message || "Erreur lors de la création du compte");
+      setError(data.message || "Échec de l'inscription");
     }
   };
 
@@ -39,7 +50,7 @@ export default function SignupForm() {
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ padding: 4, mt: 6 }}>
         <Typography variant="h5" gutterBottom align="center">
-          Créer un compte
+          Inscription
         </Typography>
 
         {error && (
@@ -48,7 +59,13 @@ export default function SignupForm() {
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSignup} noValidate>
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Inscription réussie !
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleRegister} noValidate>
           <TextField
             fullWidth
             label="Adresse email"
@@ -57,6 +74,8 @@ export default function SignupForm() {
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={Boolean(emailError)}
+            helperText={emailError}
             required
           />
 
@@ -77,7 +96,7 @@ export default function SignupForm() {
             fullWidth
             sx={{ mt: 2 }}
           >
-            Créer un compte
+            S'inscrire
           </Button>
         </Box>
       </Paper>

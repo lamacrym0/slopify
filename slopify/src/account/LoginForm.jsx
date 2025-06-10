@@ -15,10 +15,21 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
+    setEmailError("");
+    if (!validateEmail(email)) {
+      setEmailError("Adresse email invalide");
+      return;
+    }
 
     const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/login`, {
       method: "POST",
@@ -57,6 +68,8 @@ export default function LoginForm() {
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={Boolean(emailError)}
+            helperText={emailError}
             required
           />
 
